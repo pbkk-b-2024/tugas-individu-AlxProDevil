@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
+use App\Http\Controllers\OrderController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -42,6 +43,19 @@ Route::middleware('auth')->group(function () {
         Route::get('edit/{id}', 'edit')->name('suppliers.edit');
         Route::put('edit/{id}', 'update')->name('suppliers.update');
         Route::delete('destroy/{id}', 'destroy')->name('suppliers.destroy');
+    });
+
+    Route::controller(OrderController::class)->prefix('orders')->group(function () {
+        Route::get('', 'index')->name('orders.index');
+        Route::get('cart', 'cart')->name('orders.cart');
+        Route::post('add-to-cart', 'addToCart')->name('orders.addToCart');
+        Route::delete('remove-from-cart/{id}', 'removeFromCart')->name('orders.removeFromCart');
+        Route::post('checkout', 'checkout')->name('orders.checkout');
+        Route::get('your-orders', 'userOrders')->name('orders.user');
+        
+        Route::middleware('can:view-orders')->group(function () {
+            Route::get('all', 'allOrders')->name('orders.all');
+        });
     });
 
     Route::get('/profile', [App\Http\Controllers\AuthController::class, 'profile'])->name('profile');

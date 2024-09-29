@@ -25,6 +25,42 @@
     </li>
 
     <li class="nav-item">
+    @can('view-user-orders')
+        <a class="nav-link" href="{{ route('orders.index') }}">
+            <i class="fas fa-fw fa-box"></i>
+            <span>Order Products</span> <!-- This leads to the product listing to add to the cart -->
+        </a>
+    @endcan
+    </li>
+
+    <li class="nav-item">
+    @can('view-user-orders')
+        <a class="nav-link" href="{{ route('orders.cart') }}">
+            <i class="fas fa-fw fa-shopping-cart"></i>
+            <span>View Cart</span> <!-- This leads to the cart page -->
+        </a>
+    @endcan
+    </li>
+
+    <li class="nav-item">
+    @can('view-user-orders')
+        <a class="nav-link" href="{{ route('orders.user') }}">
+            <i class="fas fa-fw fa-user"></i>
+            <span>Your Orders</span>
+        </a>
+    @endcan
+    </li>
+
+    <li class="nav-item">
+    @can('view-orders')
+        <a class="nav-link" href="{{ route('orders.all') }}">
+            <i class="fas fa-fw fa-list"></i>
+            <span>All Orders</span>
+        </a>
+    @endcan
+    </li>
+
+    <li class="nav-item">
     @can('manage-suppliers')
         <a class="nav-link" href="{{ route('suppliers') }}">
             <i class="fas fa-fw fa-tachometer-alt"></i>
