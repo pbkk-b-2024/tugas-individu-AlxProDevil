@@ -19,6 +19,7 @@
                 <th>Product Code</th>
                 <th>Description</th>
                 <th>Quantity</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>+
@@ -31,6 +32,17 @@
                         <td class="align-middle">{{ $rs->product_code }}</td>
                         <td class="align-middle">{{ $rs->description }}</td>  
                         <td class="align-middle">{{ $rs->quantity }}</td>  
+                        <td class="align-middle">
+                        @if($rs->quantity > 0)
+                            <form action="{{ route('orders.addToCart') }}" method="POST" class="d-inline">
+                                @csrf
+                                <input type="hidden" name="product_id" value="{{ $rs->id }}">
+                                <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
+                            </form>
+                        @else
+                            <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                        @endif
+                        </td>
                     </tr>
                 @endforeach
             @else

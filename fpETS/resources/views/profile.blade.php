@@ -6,6 +6,17 @@
 
     <form method="POST" enctype="multipart/form-data" id="profile_setup_frm" action="" >
     @csrf
+        <div class="form-group">
+            <label for="avatar">Profile Picture</label>
+            <input type="file" class="form-control" id="avatar" name="avatar">
+        </div>
+
+        <!-- Display current avatar -->
+        @if (auth()->user()->avatar)
+            <div class="mb-3">
+                <img src="{{ asset('storage/' . auth()->user()->avatar) }}" alt="Avatar" class="img-thumbnail" width="150">
+            </div>
+        @endif
         <div class="row">
             <div class="col-md-12 border-right">
                 <div class="p-3 py-5">

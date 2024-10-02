@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -76,12 +77,26 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:15',
             'address' => 'nullable|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Avatar validation
         ]);
 
         $user = auth()->user();
         $user->name = $request->input('name');
         $user->phone = $request->input('phone');
         $user->address = $request->input('address');
+
+        // Handling avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete the old avatar if it exists
+            if ($user->avatar && Storage::exists($user->avatar)) {
+                Storage::delete($user->avatar);
+            }
+
+            // Store the new avatar
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $user->avatar = $avatarPath;
+        }
+
         $user->save();
 
         return redirect()->route('profile')->with('success', 'Profile updated!');

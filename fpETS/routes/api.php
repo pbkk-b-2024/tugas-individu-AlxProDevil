@@ -1,23 +1,17 @@
 <?php
-use App\Http\Controllers\Api\AuthAPIController;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\OrderAPIController;
 use App\Http\Controllers\Api\SupplierAPIController;
+use App\Http\Controllers\Api\ProductAPIController;
 
-route:apiResource('suppliers', SupplierAPIController::class);
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
-Route::post('register', [AuthController::class, 'register']);
-Route::post('login', [AuthController::class, 'login']);
-Route::post('logout', [AuthController::class, 'logout'])->middleware('auth');
-Route::middleware('auth')->group(function () {
-    Route::get('profile', [AuthController::class, 'profile']);
-    Route::put('profile', [AuthController::class, 'updateProfile']);
-});
+Route::apiResource('/products', ProductAPIController::class);
 
-Route::controller(SupplierAPIController::class)->prefix('suppliers')->group(function () {
-    Route::get('', 'index');              // GET /api/suppliers - List all suppliers
-    Route::post('', 'store');             // POST /api/suppliers - Create a new supplier
-    Route::get('{id}', 'show');           // GET /api/suppliers/{id} - Show a specific supplier
-    Route::put('{id}', 'update');         // PUT /api/suppliers/{id} - Update a supplier
-    Route::delete('{id}', 'destroy');     // DELETE /api/suppliers/{id} - Delete a supplier
-});
+Route::apiResource('/orders', OrderAPIController::class);
 
-Route::post('login', [AuthController::class, 'login']);
+Route::apiResource('/suppliers', SupplierAPIController::class);

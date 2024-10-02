@@ -12,7 +12,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        $product = Product::orderBy('created_at', 'DESC')->paginate(5);
+        $product = Product::orderBy('created_at', 'ASC')->paginate(5);
 
         if (auth()->user()->role === 'staff') {
             return view('products.index', compact('product'));

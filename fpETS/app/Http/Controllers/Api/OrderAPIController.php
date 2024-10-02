@@ -1,26 +1,33 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Controller;
 
-class OrderController extends Controller
+class OrderAPIController extends Controller
 {
     // Show available products (index)
     public function index()
     {
         $products = Product::all();
-        return view('orders.index', compact('products'));
+        return response()->json([
+            'success' => true,
+            'data' => $products,
+        ], 200);
     }
 
     // Show the user's cart
     public function cart()
     {
         $cart = session()->get('cart', []);
-        return view('orders.cart', compact('cart'));
+        return response()->json([
+            'success' => true,
+            'data' => $cart,
+        ], 200);
     }
 
     // Add a product to the cart
@@ -28,25 +35,30 @@ class OrderController extends Controller
     {
         $request->validate([
             'product_id' => 'required|exists:products,id',
+            'quantity' => 'required|integer|min:1',
         ]);
 
         $product = Product::findOrFail($request->product_id);
         $cart = session()->get('cart', []);
 
-        // Add one item to the cart on each button click
         if (isset($cart[$product->id])) {
-            $cart[$product->id]['quantity'] += 1;
+            $cart[$product->id]['quantity'] += $request->quantity;
         } else {
             $cart[$product->id] = [
                 'id' => $product->id,
                 'name' => $product->name,
-                'quantity' => 1, // Initial quantity is 1
+                'quantity' => $request->quantity,
                 'price' => $product->price,
             ];
         }
 
         session()->put('cart', $cart);
-        return redirect()->back()->with('success', 'Product added to cart successfully!');
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Product added to cart successfully!',
+            'cart' => $cart,
+        ], 200);
     }
 
     // Remove an item from the cart
@@ -58,7 +70,11 @@ class OrderController extends Controller
             session()->put('cart', $cart);
         }
 
-        return redirect()->back()->with('success', 'Product removed from cart');
+        return response()->json([
+            'success' => true,
+            'message' => 'Product removed from cart',
+            'cart' => $cart,
+        ], 200);
     }
 
     // Checkout and create an order
@@ -70,10 +86,12 @@ class OrderController extends Controller
 
         $cart = session()->get('cart', []);
         if (empty($cart)) {
-            return redirect()->route('orders.cart')->with('error', 'Your cart is empty');
+            return response()->json([
+                'success' => false,
+                'message' => 'Your cart is empty',
+            ], 400);
         }
 
-        // Calculate the total price
         $totalPrice = 0;
         foreach ($cart as $item) {
             $totalPrice += $item['price'] * $item['quantity'];
@@ -88,40 +106,36 @@ class OrderController extends Controller
             'payment_status' => 'Unpaid',
         ]);
 
-        // Decrement the quantity of each product and create order items
-        foreach ($cart as $item) {
-            $productId = $item['id'];  // Retrieve the 'id' key from the cart item
-            $product = Product::find($productId);  // Find product by ID
-            $product->quantity -= $item['quantity'];  // Decrement the quantity
-            $product->save();  // Save the product
-
-            // Create order items
-            $order->orderProducts()->create([
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-            ]);
-        }
-
-        // Clear the cart after successful order creation
+        // Clear the cart
         session()->forget('cart');
 
-        return redirect()->route('orders.user')->with('success', 'Order placed successfully');
+        return response()->json([
+            'success' => true,
+            'message' => 'Order placed successfully',
+            'order' => $order,
+        ], 201);
     }
 
     // Show user orders
     public function userOrders()
     {
         $orders = Order::where('user_id', Auth::id())->get();
-        return view('orders.user-orders', compact('orders'));
+        return response()->json([
+            'success' => true,
+            'data' => $orders,
+        ], 200);
     }
 
+    // Show all orders (for staff/admin)
     public function allOrders()
     {
-        // Fetch all orders
-        $orders = Order::with('user') // Assuming you have a relation to get user details
+        $orders = Order::with('user')
             ->orderBy('created_at', 'DESC')
             ->get();
 
-        return view('orders.all-orders', compact('orders'));
+        return response()->json([
+            'success' => true,
+            'data' => $orders,
+        ], 200);
     }
 }

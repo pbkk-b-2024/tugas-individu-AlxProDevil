@@ -3,82 +3,83 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\User;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
-class AuthController extends Controller
+class SupplierAPIController extends Controller
 {
-    public function register(Request $request)
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|confirmed|min:6'
-        ]);
+        // Fetch paginated suppliers and return as JSON
+        $suppliers = Supplier::orderBy('created_at', 'DESC')->paginate(5);
 
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'level' => 'Admin'
-        ]);
-
-        return response()->json(['message' => 'User registered successfully', 'user' => $user], 201);
+        return response()->json($suppliers, 200);
     }
 
-    public function login(Request $request)
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
-        }
-
-        $request->session()->regenerate();
-        return response()->json(['message' => 'Login successful', 'user' => Auth::user()], 200);
-    }
-
-    public function logout(Request $request)
-    {
-        Auth::guard('web')->logout();
-
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-
-        return response()->json(['message' => 'Logged out successfully'], 200);
-    }
-
-    public function profile(Request $request)
-    {
-        return response()->json(['user' => Auth::user()], 200);
-    }
-
-    public function updateProfile(Request $request)
-    {
+        // Validate the incoming request
         $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:15',
-            'address' => 'nullable|string|max:255',
+            'contact_info' => 'required|string|max:100',
+            'address' => 'required|string',
         ]);
+        
+        // Create a new supplier
+        $supplier = Supplier::create($request->all());
 
-        $user = Auth::user();
-        $user->update($request->only('name', 'phone', 'address'));
+        return response()->json(['message' => 'New supplier added!', 'supplier' => $supplier], 201);
+    }
 
-        return response()->json(['message' => 'Profile updated!', 'user' => $user], 200);
+    /**
+     * Display the specified resource.
+     */
+    public function show(string $id)
+    {
+        // Fetch the supplier by ID or return a 404 error
+        $supplier = Supplier::findOrFail($id);
+
+        return response()->json($supplier, 200);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        // Validate the incoming request
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'contact_info' => 'required|string|max:100',
+            'address' => 'required|string',
+        ]);
+        
+        // Fetch the supplier by ID or return a 404 error
+        $supplier = Supplier::findOrFail($id);
+
+        // Update the supplier's data
+        $supplier->update($request->all());
+
+        return response()->json(['message' => 'Supplier updated!', 'supplier' => $supplier], 200);
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        // Fetch the supplier by ID or return a 404 error
+        $supplier = Supplier::findOrFail($id);
+
+        // Delete the supplier
+        $supplier->delete();
+
+        return response()->json(['message' => 'Supplier removed!'], 200);
     }
 }

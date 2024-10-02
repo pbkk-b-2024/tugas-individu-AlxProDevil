@@ -46,7 +46,6 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::controller(OrderController::class)->prefix('orders')->group(function () {
-        Route::get('', 'index')->name('orders.index');
         Route::get('cart', 'cart')->name('orders.cart');
         Route::post('add-to-cart', 'addToCart')->name('orders.addToCart');
         Route::delete('remove-from-cart/{id}', 'removeFromCart')->name('orders.removeFromCart');

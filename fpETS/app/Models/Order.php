@@ -22,4 +22,9 @@ class Order extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function orderProducts() // Use plural to indicate multiple items
+    {
+        return $this->hasMany(OrderProduct::class);
+    }
 }

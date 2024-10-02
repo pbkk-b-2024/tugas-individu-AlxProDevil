@@ -26,15 +26,6 @@
 
     <li class="nav-item">
     @can('view-user-orders')
-        <a class="nav-link" href="{{ route('orders.index') }}">
-            <i class="fas fa-fw fa-box"></i>
-            <span>Order Products</span> <!-- This leads to the product listing to add to the cart -->
-        </a>
-    @endcan
-    </li>
-
-    <li class="nav-item">
-    @can('view-user-orders')
         <a class="nav-link" href="{{ route('orders.cart') }}">
             <i class="fas fa-fw fa-shopping-cart"></i>
             <span>View Cart</span> <!-- This leads to the cart page -->
