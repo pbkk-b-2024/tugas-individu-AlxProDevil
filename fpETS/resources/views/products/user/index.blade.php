@@ -54,6 +54,6 @@
     </table>
 
     <div class="d-flex justify-content-center">
-        {{ $product->links() }}
+        {{ $product->links('pagination::bootstrap-4') }}
     </div>
 @endsection

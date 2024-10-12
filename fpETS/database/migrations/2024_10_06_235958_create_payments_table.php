@@ -10,13 +10,12 @@ return new class extends Migration
     {
         Schema::create('payments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders');
-            $table->string('payment_method');
-            $table->string('payment_status');
-            $table->string('transaction_id')->nullable();
-            $table->decimal('amount', 10, 2);
+            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
+            $table->enum('payment_method', ['bank_transfer', 'cash_on_delivery']);
+            $table->enum('status', ['Unpaid', 'Pending', 'Completed']);
+            $table->string('receipt_path')->nullable();
             $table->timestamps();
-        });
+        });        
     }
 
     public function down(): void

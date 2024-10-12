@@ -2,140 +2,63 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
-use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
 
 class OrderAPIController extends Controller
 {
-    // Show available products (index)
     public function index()
     {
-        $products = Product::all();
-        return response()->json([
-            'success' => true,
-            'data' => $products,
-        ], 200);
+        $orders = Order::orderBy('created_at', 'DESC')->paginate(5);
+        return response()->json($orders, 200);
     }
 
-    // Show the user's cart
-    public function cart()
-    {
-        $cart = session()->get('cart', []);
-        return response()->json([
-            'success' => true,
-            'data' => $cart,
-        ], 200);
-    }
-
-    // Add a product to the cart
-    public function addToCart(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'status' => 'required|string',
+            'total_price' => 'required|numeric',
+            'shipping_address' => 'required|string',
         ]);
 
-        $product = Product::findOrFail($request->product_id);
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$product->id])) {
-            $cart[$product->id]['quantity'] += $request->quantity;
-        } else {
-            $cart[$product->id] = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'quantity' => $request->quantity,
-                'price' => $product->price,
-            ];
-        }
-
-        session()->put('cart', $cart);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product added to cart successfully!',
-            'cart' => $cart,
-        ], 200);
-    }
-
-    // Remove an item from the cart
-    public function removeFromCart($id)
-    {
-        $cart = session()->get('cart', []);
-        if (isset($cart[$id])) {
-            unset($cart[$id]);
-            session()->put('cart', $cart);
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Product removed from cart',
-            'cart' => $cart,
-        ], 200);
-    }
-
-    // Checkout and create an order
-    public function checkout(Request $request)
-    {
-        $request->validate([
-            'shipping_address' => 'required|string|max:255',
-        ]);
-
-        $cart = session()->get('cart', []);
-        if (empty($cart)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Your cart is empty',
-            ], 400);
-        }
-
-        $totalPrice = 0;
-        foreach ($cart as $item) {
-            $totalPrice += $item['price'] * $item['quantity'];
-        }
-
-        // Create the order
         $order = Order::create([
             'user_id' => Auth::id(),
-            'status' => 'Pending',
-            'total_price' => $totalPrice,
+            'status' => $request->status,
+            'total_price' => $request->total_price,
             'shipping_address' => $request->shipping_address,
             'payment_status' => 'Unpaid',
         ]);
 
-        // Clear the cart
-        session()->forget('cart');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Order placed successfully',
-            'order' => $order,
-        ], 201);
+        return response()->json(['message' => 'Order placed successfully!', 'order' => $order], 201);
     }
 
-    // Show user orders
-    public function userOrders()
+    public function show(string $id)
     {
-        $orders = Order::where('user_id', Auth::id())->get();
-        return response()->json([
-            'success' => true,
-            'data' => $orders,
-        ], 200);
+        $order = Order::findOrFail($id);
+        return response()->json($order, 200);
     }
 
-    // Show all orders (for staff/admin)
-    public function allOrders()
+    public function update(Request $request, string $id)
     {
-        $orders = Order::with('user')
-            ->orderBy('created_at', 'DESC')
-            ->get();
+        $request->validate([
+            'status' => 'required|string',
+            'total_price' => 'required|numeric',
+            'shipping_address' => 'required|string',
+        ]);
 
-        return response()->json([
-            'success' => true,
-            'data' => $orders,
-        ], 200);
+        $order = Order::findOrFail($id);
+        $order->update($request->all());
+
+        return response()->json(['message' => 'Order updated!', 'order' => $order], 200);
+    }
+
+    public function destroy(string $id)
+    {
+        $order = Order::findOrFail($id);
+        $order->delete();
+
+        return response()->json(['message' => 'Order deleted!'], 200);
     }
 }

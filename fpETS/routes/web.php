@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -56,6 +57,14 @@ Route::middleware('auth')->group(function () {
             Route::get('all', 'allOrders')->name('orders.all');
         });
     });
+
+    Route::controller(PaymentController::class)->prefix('payment')->group(function () {
+        Route::get('/{order}', 'showPaymentPage')->name('payment.show');
+        Route::post('/{order}/process', 'processPayment')->name('payment.process');
+        Route::get('/{order}/upload-receipt', 'showUploadReceipt')->name('payment.uploadReceipt');
+        Route::post('/{order}/upload-receipt', 'uploadReceipt')->name('payment.uploadReceipt.post');
+        Route::post('/{order}/confirm', 'confirmPayment')->name('payment.confirm');
+    });    
 
     Route::get('/profile', [App\Http\Controllers\AuthController::class, 'profile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
