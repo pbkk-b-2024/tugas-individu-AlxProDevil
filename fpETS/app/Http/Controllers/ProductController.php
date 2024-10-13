@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -10,15 +11,23 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $product = Product::orderBy('created_at', 'ASC')->paginate(5);
+        $query = Product::with('category')->orderBy('created_at', 'ASC');
 
-        if (auth()->user()->role === 'staff') {
-            return view('products.index', compact('product'));
+        if ($request->filled('search')) {
+            $searchTerm = $request->input('search');
+            $query->where('name', 'like', '%' . $searchTerm . '%')
+                ->orWhere('description', 'like', '%' . $searchTerm . '%');
         }
 
-        return view('products.user.index', compact('product'));
+        $products = $query->paginate(5);
+
+        if (auth()->user()->role === 'staff') {
+            return view('products.index', compact('products'));
+        }
+
+        return view('products.user.index', compact('products'));
     }
 
     /**
@@ -26,7 +35,8 @@ class ProductController extends Controller
      */
     public function create()
     {
-        return view('products.create');
+        $categories = Category::all();
+        return view('products.create', compact('categories'));
     }
 
     /**
@@ -40,6 +50,7 @@ class ProductController extends Controller
             'product_code' => 'required|string|max:100',
             'description' => 'required|string',
             'quantity' => 'integer|min:0',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
         
         Product::create($request->all());
@@ -53,8 +64,9 @@ class ProductController extends Controller
     public function show(string $id)
     {
         $product = Product::findOrFail($id);
+        $categories = Category::all();
 
-        return view('products.show', compact('product'));
+        return view('products.show', compact('product', 'categories'));
     }
 
     /**
@@ -63,8 +75,9 @@ class ProductController extends Controller
     public function edit(string $id)
     {
         $product = Product::findOrFail($id);
+        $categories = Category::all();
 
-        return view('products.edit', compact('product'));
+        return view('products.edit', compact('product', 'categories'));
     }
 
     /**
@@ -77,10 +90,10 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'product_code' => 'required|string|max:100',
             'description' => 'required|string',
+            'category_id' => 'nullable|exists:categories,id',
         ]);
         
         $product = Product::findOrFail($id);
-
         $product->update($request->all());
 
         return redirect()->route('products')->with('success', 'Product updated!');

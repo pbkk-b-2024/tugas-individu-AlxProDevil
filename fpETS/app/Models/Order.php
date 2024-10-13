@@ -33,4 +33,15 @@ class Order extends Model
         return $this->hasOne(Payment::class);
     }
 
+    public function shipment()
+    {
+        return $this->hasOne(Shipment::class);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class, 'order_products')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
+    }
 }

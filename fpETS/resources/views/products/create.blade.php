@@ -37,6 +37,17 @@
                 <textarea class="form-control" name="description" placeholder="Description">{{ old('description') }}</textarea>
             </div>
         </div>
+        <div class="form-group">
+            <label for="category_id">Category (Optional)</label>
+            <select name="category_id" id="category_id" class="form-control">
+                <option value="">-- Select Category --</option>
+                @foreach($categories as $category)
+                    <option value="{{ $category->id }}" {{ isset($product) && $product->category_id == $category->id ? 'selected' : '' }}>
+                        {{ $category->name }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
         <div class="row">
             <div class="d-grid">

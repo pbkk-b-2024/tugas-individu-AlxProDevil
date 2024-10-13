@@ -33,10 +33,13 @@ class PaymentController extends Controller
         $order->payment_status = 'Pending'; 
         $order->save();
 
-        // Redirect based on payment method
         if ($request->payment_method === 'bank_transfer') {
             return redirect()->route('payment.uploadReceipt', $orderId)->with('success', 'Please upload the payment receipt.');
         } else {
+            $payment->status = 'Completed';
+            $payment->save();
+            $order->payment_status = 'Completed';
+            $order->save();
             return redirect()->route('orders.user')->with('success', 'Your order has been placed. Please pay on delivery.');
         }
     }
@@ -50,15 +53,14 @@ class PaymentController extends Controller
     public function uploadReceipt(Request $request, $orderId)
     {
         $request->validate([
-            'receipt' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048', // Adjust validation as necessary
+            'receipt' => 'required|file|mimes:jpeg,png,jpg,pdf|max:2048',
         ]);
 
         $order = Order::findOrFail($orderId);
         $payment = $order->payment;
 
-        // Store the uploaded file
         if ($request->hasFile('receipt')) {
-            $filePath = $request->file('receipt')->store('receipts', 'public'); // Store in public disk under 'receipts'
+            $filePath = $request->file('receipt')->store('receipts', 'public');
             $payment->receipt_path = $filePath;
             $payment->status = 'Pending';
             $payment->save();
@@ -77,11 +79,9 @@ class PaymentController extends Controller
         $payment = Payment::where('order_id', $orderId)->first();
 
         if ($payment && $payment->status === 'Pending') {
-            // Update payment status to completed
             $payment->status = 'Completed';
             $payment->save();
 
-            // Update order's payment status to completed
             $order->payment_status = 'Completed'; 
             $order->save();
 

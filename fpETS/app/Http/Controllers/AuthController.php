@@ -77,7 +77,7 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:15',
             'address' => 'nullable|string|max:255',
-            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Avatar validation
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
         $user = auth()->user();
@@ -92,7 +92,6 @@ class AuthController extends Controller
                 Storage::delete($user->avatar);
             }
 
-            // Store the new avatar
             $avatarPath = $request->file('avatar')->store('avatars', 'public');
             $user->avatar = $avatarPath;
         }

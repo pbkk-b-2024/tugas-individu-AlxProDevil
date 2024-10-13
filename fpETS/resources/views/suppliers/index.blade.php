@@ -14,7 +14,6 @@
     <table class="table table-hover">
         <thead class="table-primary">
             <tr>
-                <th>#</th>
                 <th>Name</th>
                 <th>Contact Info</th>
                 <th>Address</th>
@@ -25,7 +24,6 @@
             @if($supplier->count() > 0)
                 @foreach($supplier as $sp)
                     <tr>
-                        <td class="align-middle">{{ $loop->iteration }}</td>
                         <td class="align-middle">{{ $sp->name }}</td>
                         <td class="align-middle">{{ $sp->contact_info }}</td>
                         <td class="align-middle">{{ $sp->address }}</td>
